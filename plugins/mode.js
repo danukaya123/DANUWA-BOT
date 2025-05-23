@@ -1,6 +1,5 @@
 const fs = require('fs');
 const path = require('path');
-const config = require('../config');
 const { cmd } = require('../command');
 
 cmd({
@@ -13,23 +12,31 @@ async (conn, mek, m, {
     sender, reply
 }) => {
     try {
-        // Normalize sender number: remove anything not a digit
-        const senderNumber = sender.split('@')[0].replace(/\D/g, '');
+        // Get the bot's own number dynamically
+        const botNumberJid = conn.user?.id || conn.user?.jid; // Baileys user ID
+        if (!botNumberJid) return reply("❌ Bot number not found. Try again later.");
 
-        // Normalize and check owner numbers
-        const isOwner = config.ownerNumber.some(num => num.replace(/\D/g, '') === senderNumber);
-        if (!isOwner) return reply("❌ This command is only for the bot owner.");
+        const botNumber = botNumberJid.split(':')[0].split('@')[0]; // Clean JID (handle device suffix)
+        const senderNumber = sender.split('@')[0];
 
+        // Only allow bot paired number to run
+        if (senderNumber !== botNumber) {
+            return reply("❌ This command is only for the bot paired number.");
+        }
+
+        // Parse mode argument
         const mode = (m.body.split(' ')[1] || '').toLowerCase();
 
         if (!['public', 'private'].includes(mode)) {
-            return reply(`⚙️ *Current Mode:* ${config.MODE.toUpperCase()}\n\n_Usage:_\n.mode public\n.mode private`);
+            return reply(`⚙️ *Current Mode:* ${global.config?.MODE?.toUpperCase() || 'UNKNOWN'}\n\n_Usage:_\n.mode public\n.mode private`);
         }
 
-        // Update runtime config
-        config.MODE = mode;
+        // Update runtime config (global or your config module)
+        if (global.config) {
+            global.config.MODE = mode;
+        }
 
-        // Update .env file
+        // Update config.env file
         const envPath = path.join(__dirname, '../config.env');
         let envText = fs.existsSync(envPath) ? fs.readFileSync(envPath, 'utf-8') : '';
 
