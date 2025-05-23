@@ -2,7 +2,7 @@ const { cmd } = require('../command');
 const config = require('../config');
 
 cmd({
-  pattern: 'mode ?(.*)',
+  pattern: 'mode',
   react: '⚙️',
   desc: 'Toggle bot mode between public and private',
   category: 'owner',
