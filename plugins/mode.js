@@ -13,17 +13,15 @@ async (conn, mek, m, {
     sender, reply
 }) => {
     try {
-        // Extract number from sender (e.g., 94764105270 from 94764105270@s.whatsapp.net)
-        const senderNumber = sender.split('@')[0];
+        // Normalize sender number: remove anything not a digit
+        const senderNumber = sender.split('@')[0].replace(/\D/g, '');
 
-        // Check if the sender is in owner list
-        const isOwner = config.BOT_OWNER.includes(senderNumber);
+        // Normalize and check owner numbers
+        const isOwner = config.ownerNumber.some(num => num.replace(/\D/g, '') === senderNumber);
         if (!isOwner) return reply("❌ This command is only for the bot owner.");
 
-        // Extract mode
         const mode = (m.body.split(' ')[1] || '').toLowerCase();
 
-        // Invalid input
         if (!['public', 'private'].includes(mode)) {
             return reply(`⚙️ *Current Mode:* ${config.MODE.toUpperCase()}\n\n_Usage:_\n.mode public\n.mode private`);
         }
@@ -31,7 +29,7 @@ async (conn, mek, m, {
         // Update runtime config
         config.MODE = mode;
 
-        // Update config.env file
+        // Update .env file
         const envPath = path.join(__dirname, '../config.env');
         let envText = fs.existsSync(envPath) ? fs.readFileSync(envPath, 'utf-8') : '';
 
