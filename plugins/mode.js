@@ -1,21 +1,44 @@
-const { cmd } = require('../command');
 const config = require('../config');
+const { cmd } = require('../command');
+const fs = require('fs');
+const path = require('path');
 
 cmd({
-  pattern: 'mode',
-  react: '⚙️',
-  desc: 'Toggle bot mode between public and private',
-  category: 'owner',
-  filename: __filename
-}, async (m, { match, isOwner, text, robin }) => {
-  if (!isOwner) return m.reply('Only the bot owner can use this command.');
+    pattern: "mode",
+    desc: "Change bot mode to public or private",
+    category: "owner",
+    filename: __filename
+},
+async(conn, mek, m, {
+    sender, reply
+}) => {
+    try {
+        const ownerJid = config.BOT_OWNER + '@s.whatsapp.net';
+        if (sender !== ownerJid) return reply("❌ This command is only for the bot owner.");
 
-  const mode = match.toLowerCase();
+        const mode = m.body.split(' ')[1]?.toLowerCase();
+        if (!['public', 'private'].includes(mode)) {
+            return reply(`⚙️ *Current Mode:* ${config.MODE || 'public'}\n\n_Usage:_\n.mode public\n.mode private`);
+        }
 
-  if (!['public', 'private'].includes(mode)) {
-    return m.reply(`Invalid mode.\n\nUse:\n.mode public\n.mode private\n\nCurrent mode: *${config.MODE || 'public'}*`);
-  }
+        // Update mode in memory
+        config.MODE = mode;
 
-  config.MODE = mode;
-  m.reply(`✅ Mode successfully changed to *${mode.toUpperCase()}*`);
+        // Optional: update config.json if exists and writable
+        try {
+            const configPath = path.join(__dirname, '../config.json');
+            if (fs.existsSync(configPath)) {
+                const current = JSON.parse(fs.readFileSync(configPath));
+                current.MODE = mode;
+                fs.writeFileSync(configPath, JSON.stringify(current, null, 2));
+            }
+        } catch (err) {
+            console.error("Failed to update config.json:", err);
+        }
+
+        reply(`✅ Bot mode changed to *${mode.toUpperCase()}*`);
+    } catch (e) {
+        console.error(e);
+        reply(`${e}`);
+    }
 });
