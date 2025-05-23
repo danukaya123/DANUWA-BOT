@@ -146,15 +146,15 @@ async function connectToWA() {
     if (isCmd) {
       const cmd = commands.find((c) => c.pattern === commandName || (c.alias && c.alias.includes(commandName)));
       if (cmd) {
-                switch ((config.MODE || 'public').toLowerCase()) {
-          case 'private':
-            if (!isOwner) return;
-            break;
-          case 'admin':
-            if (isGroup && !isAdmins && !isOwner) return;
-            break;
-        }
-        
+switch ((config.MODE || 'public').toLowerCase()) {
+  case 'private':
+    if (!isOwner) return;
+    break;
+  case 'public':
+  default:
+    // Allow everyone to use the bot (no restriction)
+    break;
+}
         if (cmd.react) conn.sendMessage(from, { react: { text: cmd.react, key: mek.key } });
 
         try {
