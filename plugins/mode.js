@@ -4,7 +4,7 @@ const config = require('../config');
 const { cmd } = require('../command');
 
 cmd({
-    pattern: "mode ?(.*)",
+    pattern: "mode",
     desc: "Change bot mode to public or private",
     category: "owner",
     filename: __filename
