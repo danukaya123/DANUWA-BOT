@@ -4,7 +4,7 @@ const config = require('../config');
 const { cmd } = require('../command');
 
 cmd({
-    pattern: "mode",
+    pattern: "mode ?(.*)",
     desc: "Change bot mode to public or private",
     category: "owner",
     filename: __filename
@@ -13,20 +13,25 @@ async (conn, mek, m, {
     sender, reply
 }) => {
     try {
-        // Validate owner
-        const isOwner = config.ownerNumber.includes(sender.split('@')[0]);
+        // Extract number from sender (e.g., 94764105270 from 94764105270@s.whatsapp.net)
+        const senderNumber = sender.split('@')[0];
+
+        // Check if the sender is in owner list
+        const isOwner = config.ownerNumber.includes(senderNumber);
         if (!isOwner) return reply("❌ This command is only for the bot owner.");
 
+        // Extract mode
         const mode = (m.body.split(' ')[1] || '').toLowerCase();
 
+        // Invalid input
         if (!['public', 'private'].includes(mode)) {
             return reply(`⚙️ *Current Mode:* ${config.MODE.toUpperCase()}\n\n_Usage:_\n.mode public\n.mode private`);
         }
 
-        // Update in memory
+        // Update runtime config
         config.MODE = mode;
 
-        // Update .env file
+        // Update config.env file
         const envPath = path.join(__dirname, '../config.env');
         let envText = fs.existsSync(envPath) ? fs.readFileSync(envPath, 'utf-8') : '';
 
