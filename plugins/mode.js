@@ -17,7 +17,7 @@ async (conn, mek, m, {
         const senderNumber = sender.split('@')[0];
 
         // Check if the sender is in owner list
-        const isOwner = config.ownerNumber.includes(senderNumber);
+        const isOwner = config.BOT_OWNER.includes(senderNumber);
         if (!isOwner) return reply("❌ This command is only for the bot owner.");
 
         // Extract mode
